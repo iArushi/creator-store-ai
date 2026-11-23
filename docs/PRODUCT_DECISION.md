@@ -27,23 +27,62 @@ My approach is therefore to treat this as a creator monetisation discovery probl
 
 These are working assumptions based on the assignment brief, not findings from completed primary user research.
 
-## 2. User and experience
-
-I prioritised the Indian micro-creator who has an audience but is unsure what to sell. I also considered the secondary persona: an expert, teacher or professional with limited social presence who needs help turning their expertise into an offer.
+## 2. User and the flow designed for them
 
 The guiding principle is: **creators should not need to know how to define or package their expertise before using the product.**
 
-### Designed journey
+### Primary user — Indian micro-creator
 
-Creator resources → Evidence extraction → Creator intelligence → Creator confirmation → Goals → Market research → Product recommendations → Storefront generation → Published URL → Edit / add products
+| | |
+|---|---|
+| **Who** | Creator with ~5K–100K followers (finance, fitness, cooking, exam prep, design, etc.) |
+| **Context** | Already posts tips / explainers; gets DMs asking for help |
+| **Job to be done** | Turn what I already teach into something people can pay for in ₹ |
+| **Main friction** | “What do I sell? Who is it for? What should it cost? How do I explain it?” |
+| **Device** | Mostly mobile; short sessions; low patience for jargon |
+| **Success for them** | A shareable store link with a clear first offer they believe they can deliver |
 
-1. **Understand the creator:** Accept screenshots, captions, documents, public links or a short self-description. Instagram works only when connected — we do not invent a scrape from a bare `@handle`.
-2. **Discover expertise:** Analyse recurring themes, demonstrated knowledge, potential audience problems and reusable knowledge assets.
-3. **Confirm understanding:** Present an AI-generated creator profile for review and correction.
-4. **Discover opportunities:** Generate three tailored product ideas using SuperProfile product types, with target audiences, deliverables and INR pricing.
-5. **Select and customise:** Allow editing and individual or complete regeneration.
-6. **Generate and publish:** Create a branded, mobile-friendly storefront with real generation progress and a public shareable URL.
-7. **Grow the store:** In edit mode, add more offers from the same SuperProfile product catalogue, with ready drafts so creators are not staring at a blank form.
+**Example:** A personal-finance creator who explains budgeting and salary habits, but has never packaged a paid digital product.
+
+### Secondary user — expert with little or no audience
+
+| | |
+|---|---|
+| **Who** | Teacher, coach, CA, trainer — skilled, but weak social presence |
+| **Context** | Helps people offline / on WhatsApp; may have PDFs or worksheets |
+| **Job to be done** | Turn expertise + documents into a simple paid offer without needing Instagram |
+| **Main friction** | No “content brand” to scrape; blank product forms feel intimidating |
+| **Success for them** | Same outcome: confirmed summary → 3 ideas → live store page |
+
+**Example:** A CA who teaches freelancers GST filing, with a small social following but daily client questions.
+
+### Flow designed for them
+
+I designed a **discovery → confirm → recommend → publish → grow** journey so the product does the packaging work, while the creator stays in control of truthfulness.
+
+![User flow sketch](./sketches/user-flow-sketch.jpg)
+
+```mermaid
+flowchart LR
+  A[1. Start: share what you teach] --> B[2. AI creator snapshot]
+  B --> C[3. Creator confirms / edits]
+  C --> D[4. Goals]
+  D --> E[5. Three product ideas]
+  E --> F[6. Generate storefront + real progress]
+  F --> G[7. Live shareable URL]
+  G --> H[8. Edit offers / Create a product]
+```
+
+**Step-by-step (what the user experiences)**
+
+1. **Start — understand the creator:** Paste a short description; optionally add screenshots, PDFs, captions, or public links. Instagram only when connected — a bare `@handle` does not invent a scrape.
+2. **Snapshot:** AI extracts topics, problems people ask about, and reusable knowledge assets. Marks *observed* vs *inferred*.
+3. **Confirm:** Creator fixes anything wrong before we recommend money products.
+4. **Goals:** Light intent signal (e.g. “figure out what to sell”) — not a product-type quiz.
+5. **Three ideas:** Offers in SuperProfile product types, with who it’s for, deliverables, and ₹ pricing (researched label only when citations exist).
+6. **Generate storefront:** Real progress stages → mobile store page.
+7. **Share:** Public URL that persists after deploy.
+8. **Grow:** Edit mode + **Create a product** templates so adding a second offer isn’t a blank form.
 
 ### SuperProfile product types (MVP catalogue)
 
@@ -60,18 +99,23 @@ Recommendations, format dropdowns and **Create a product** use the same six type
 
 Discovery still comes first. The catalogue is used *after* we understand the creator — in AI suggestions and when they choose to add another offer.
 
-### Alternative considered
+### Alternative considered for a main screen (edit / grow)
 
-I considered a product-first onboarding screen where creators pick a SuperProfile product type before anything else.
+Assignment asks for at least one alternative on a main screen. I treated the **post-publish edit screen** as a main surface — it is where creators expand the store after their first win.
 
-I rejected that for the first session because it assumes they already know what to sell. That recreates the uncertainty the product is supposed to solve.
+![Edit screen alternative: rejected blank form vs chosen Create a product](./sketches/alt-edit-screen-comparison.jpg)
 
-Instead:
+| | Rejected | Chosen |
+|---|---|---|
+| **Screen idea** | Classic “+ Add product” with empty title / format / price fields | **Create a product** panel with SuperProfile’s six types as ready drafts |
+| **Creator effort** | Must invent name, format, deliverables, and ₹ price from scratch | Tap a type → draft appears → tweak wording |
+| **Risk** | Recreates the original monetisation freeze (“I don’t know what to add”) | Mild risk of template sameness — mitigated by editable fields + regenerate |
+| **Why rejected** | Blank forms help power users, not first-time sellers. After the first storefront, the product’s job is still to reduce thinking load, not hand them a spreadsheet. |
+| **Why chosen** | Matches SuperProfile’s real catalogue language; keeps discovery-first onboarding; uses catalogue-first only when they already have a live store to grow. |
 
-- **Onboarding:** discovery-first (understand → recommend a suitable type).
-- **After publish:** catalogue-first templates under **Create a product**, because by then they have a live store and are expanding — not starting from zero.
+I also considered (and rejected) a **product-first onboarding** main screen (pick Digital Files / Course / etc. before describing expertise). That assumes they already know what to sell — the opposite of the problem hypothesis. Catalogue belongs after understanding, not before.
 
-I also avoided a long mandatory questionnaire. Optional guided questions and resource uploads help creators who cannot easily articulate their expertise.
+I avoided a long mandatory questionnaire. Optional guided questions and resource uploads help creators who cannot easily articulate their expertise.
 
 ## 3. Key product decisions and trade-offs
 
