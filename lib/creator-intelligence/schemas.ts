@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { PRODUCT_FORMATS, CREATION_EFFORT_LEVELS, CONFIDENCE_LEVELS } from "@/lib/schemas";
+import {
+  PRODUCT_FORMATS,
+  CREATION_EFFORT_LEVELS,
+  CONFIDENCE_LEVELS,
+  normalizeProductFormat,
+} from "@/lib/schemas";
 
 export const SOURCE_TYPES = [
   "image",
@@ -306,25 +311,7 @@ const positiveInr = z.preprocess((value) => {
 const requiredLiveString = z.string().trim().min(3);
 
 function coerceFormat(value: unknown): (typeof PRODUCT_FORMATS)[number] {
-  const raw = String(value || "")
-    .trim()
-    .toLowerCase();
-  const exact = PRODUCT_FORMATS.find((f) => f === raw);
-  if (exact) return exact;
-  if (raw.includes("ebook") || raw.includes("pdf") || raw.includes("guide")) {
-    return "ebook";
-  }
-  if (raw.includes("template") || raw.includes("checklist") || raw.includes("sheet")) {
-    return "template pack";
-  }
-  if (raw.includes("workshop") || raw.includes("webinar")) return "workshop";
-  if (raw.includes("cohort") || raw.includes("group")) return "cohort course";
-  if (raw.includes("1:1") || raw.includes("call") || raw.includes("consult")) {
-    return "1:1 call";
-  }
-  if (raw.includes("community") || raw.includes("discord")) return "community";
-  if (raw.includes("mini")) return "mini-course";
-  return "mini-course";
+  return normalizeProductFormat(value);
 }
 
 const DEFAULT_SCORE_EXPLANATIONS = {

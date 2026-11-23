@@ -8,12 +8,15 @@ import {
   Clock,
   LayoutGrid,
   List,
+  Plus,
   Sparkles,
+  X,
   Zap,
 } from "lucide-react";
 import {
   COVER_MOTIFS,
   PRODUCT_FORMATS,
+  PRODUCT_FORMAT_META,
   type CoverMotif,
   type Storefront,
   type StorefrontProduct,
@@ -22,13 +25,20 @@ import { ProductArtifactPreview } from "@/components/storefront/ArtifactPreviews
 import CreatorDock from "@/components/storefront/CreatorDock";
 import OfferModal from "@/components/storefront/OfferModal";
 import {
+  MAX_DELIVERABLES,
+  MAX_OFFERS,
+  MIN_DELIVERABLES,
+  MIN_OFFERS,
   STOREFRONT_FILTERS,
   ctaLabelForProduct,
+  deliverableSuggestionsFor,
   filterIdForProduct,
   formatDurationHint,
   formatInr,
   heroCtaLabel,
+  offerTemplatesFor,
   oneLinerFor,
+  type OfferTemplate,
 } from "@/components/storefront/clarity-copy";
 import {
   applyCreatorCapsInCopy,
@@ -260,6 +270,95 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
     }));
   }
 
+  function addDeliverable(id: string, value?: string) {
+    setStorefront((prev) => ({
+      ...prev,
+      products: prev.products.map((product) => {
+        if (product.id !== id) return product;
+        if (product.deliverables.length >= MAX_DELIVERABLES) return product;
+        const next = value?.trim() || "";
+        if (
+          next &&
+          product.deliverables.some(
+            (item) => item.trim().toLowerCase() === next.toLowerCase(),
+          )
+        ) {
+          return product;
+        }
+        return {
+          ...product,
+          deliverables: [...product.deliverables, next || "New included item"],
+        };
+      }),
+    }));
+  }
+
+  function removeDeliverable(id: string, index: number) {
+    setStorefront((prev) => ({
+      ...prev,
+      products: prev.products.map((product) => {
+        if (product.id !== id) return product;
+        if (product.deliverables.length <= MIN_DELIVERABLES) return product;
+        return {
+          ...product,
+          deliverables: product.deliverables.filter((_, i) => i !== index),
+        };
+      }),
+    }));
+  }
+
+  function addOfferFromTemplate(template: OfferTemplate) {
+    setStorefront((prev) => {
+      if (prev.products.length >= MAX_OFFERS) return prev;
+      const id =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID().slice(0, 8)
+          : Math.random().toString(36).slice(2, 10);
+      const nextProduct: StorefrontProduct = {
+        id,
+        title: template.title,
+        format: template.format,
+        description: template.description,
+        targetAudience: template.targetAudience,
+        problemSolved: template.problemSolved,
+        outcome: template.outcome,
+        deliverables: template.deliverables,
+        priceInr: template.priceInr,
+        priceRationale: template.priceRationale,
+        whyFitsCreator: template.whyFitsCreator,
+        featured: false,
+        coverMotif: template.coverMotif,
+      };
+      return {
+        ...prev,
+        products: [...prev.products, nextProduct],
+      };
+    });
+    setToastText("Offer added — edit the wording anytime");
+    window.setTimeout(() => setToastText(null), 2500);
+  }
+
+  function removeOffer(id: string) {
+    setStorefront((prev) => {
+      if (prev.products.length <= MIN_OFFERS) return prev;
+      const next = prev.products.filter((product) => product.id !== id);
+      if (!next.some((product) => product.featured) && next[0]) {
+        next[0] = { ...next[0], featured: true };
+      }
+      return { ...prev, products: next };
+    });
+  }
+
+  const offerTemplates = useMemo(
+    () =>
+      offerTemplatesFor({
+        niche: nicheLabel,
+        existing: storefront.products,
+      }),
+    [nicheLabel, storefront.products],
+  );
+  const canAddOffer = storefront.products.length < MAX_OFFERS;
+
   function scrollToOffers(presetGoal?: string) {
     if (presetGoal) setGoalFilter(presetGoal);
     document
@@ -463,31 +562,42 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
                 Pick what fits you
               </h2>
 
-              <div className="inline-flex rounded-full border border-line bg-surface p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("cards")}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                    viewMode === "cards"
-                      ? "bg-pine text-white"
-                      : "text-ink-secondary hover:text-pine-ink"
-                  }`}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  <span>Cards</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("list")}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                    viewMode === "list"
-                      ? "bg-pine text-white"
-                      : "text-ink-secondary hover:text-pine-ink"
-                  }`}
-                >
-                  <List className="h-3.5 w-3.5" />
-                  <span>Compare</span>
-                </button>
+              <div className="flex items-center gap-2">
+                {editing && canAddOffer ? (
+                  <a
+                    href="#add-offer"
+                    className="inline-flex items-center gap-1 rounded-full border border-pine/30 bg-sage-soft px-3 py-1.5 text-xs font-semibold text-pine"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add offer
+                  </a>
+                ) : null}
+                <div className="inline-flex rounded-full border border-line bg-surface p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("cards")}
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      viewMode === "cards"
+                        ? "bg-pine text-white"
+                        : "text-ink-secondary hover:text-pine-ink"
+                    }`}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    <span>Cards</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("list")}
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      viewMode === "list"
+                        ? "bg-pine text-white"
+                        : "text-ink-secondary hover:text-pine-ink"
+                    }`}
+                  >
+                    <List className="h-3.5 w-3.5" />
+                    <span>Compare</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -605,10 +715,20 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
                         <ProductEditor
                           product={offer}
                           regenerating={regenerating === offer.id}
+                          canRemoveOffer={
+                            storefront.products.length > MIN_OFFERS
+                          }
                           onChange={(patch) => updateProduct(offer.id, patch)}
                           onDeliverableChange={(i, v) =>
                             updateDeliverable(offer.id, i, v)
                           }
+                          onAddDeliverable={(value) =>
+                            addDeliverable(offer.id, value)
+                          }
+                          onRemoveDeliverable={(i) =>
+                            removeDeliverable(offer.id, i)
+                          }
+                          onRemoveOffer={() => removeOffer(offer.id)}
                           onRegenerate={() => regenerate("product", offer.id)}
                         />
                       ) : (
@@ -618,7 +738,7 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
                               <div className="flex flex-wrap items-center gap-2">
                                 <span
                                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
-                                    offer.format === "1:1 call"
+                                    offer.format === "1-on-1 session"
                                       ? "border border-amber-200 bg-ochre-soft text-ochre-ink"
                                       : "bg-sage-soft text-pine"
                                   }`}
@@ -696,6 +816,60 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
                   </article>
                 );
               })}
+
+              {editing ? (
+                <div
+                  id="add-offer"
+                  className="scroll-mt-24 space-y-3 rounded-3xl border-2 border-dashed border-pine/35 bg-sage-soft/50 p-5"
+                >
+                  <div className="space-y-1">
+                    <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pine">
+                      <Plus className="h-3.5 w-3.5" />
+                      Create a product
+                    </p>
+                    <h3 className="font-display text-xl font-semibold text-pine-ink">
+                      Make money by selling products and services
+                    </h3>
+                    <p className="text-sm text-ink-secondary">
+                      Same SuperProfile product types — tap one to add a ready
+                      draft for {nicheLabel}, then edit.
+                      {" "}
+                      ({storefront.products.length}/{MAX_OFFERS} offers)
+                    </p>
+                  </div>
+
+                  {canAddOffer ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {offerTemplates.map((template) => {
+                        const meta = PRODUCT_FORMAT_META[template.format];
+                        return (
+                          <button
+                            key={template.format}
+                            type="button"
+                            onClick={() => addOfferFromTemplate(template)}
+                            className="flex cursor-pointer flex-col items-start gap-1.5 rounded-2xl border border-pine/25 bg-surface px-4 py-3.5 text-left shadow-xs transition-colors hover:border-pine hover:bg-sage-soft/70"
+                          >
+                            <span className="text-sm font-semibold text-pine-ink">
+                              {meta.label}
+                            </span>
+                            <span className="text-[12px] leading-snug text-ink-secondary">
+                              {meta.blurb}
+                            </span>
+                            <span className="pt-0.5 text-[11px] font-medium text-pine">
+                              Add · from {formatInr(template.priceInr)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-secondary">
+                      You’re at the max of {MAX_OFFERS} offers. Remove one first
+                      if you want to swap in a different format.
+                    </p>
+                  )}
+                </div>
+              ) : null}
             </div>
           )}
         </section>
@@ -722,8 +896,9 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
                   className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-pine px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-pine-dark sm:w-auto"
                 >
                   <span>
-                    {flagship.format.toLowerCase().includes("workshop")
-                      ? `Join Workshop · ${formatInr(flagship.priceInr)}`
+                    {flagship.format.toLowerCase().includes("event") ||
+                    flagship.format.toLowerCase().includes("webinar")
+                      ? `Join Event · ${formatInr(flagship.priceInr)}`
                       : `${flagship.title.slice(0, 22)}${flagship.title.length > 22 ? "…" : ""} · ${formatInr(flagship.priceInr)}`}
                   </span>
                   <ArrowRight className="h-4 w-4" />
@@ -770,7 +945,23 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
         showPreviews={showPreviews}
         onTogglePreviews={() => setShowPreviews((v) => !v)}
         editing={editing}
-        onToggleEditing={() => setEditing((v) => !v)}
+        onToggleEditing={() => {
+          setEditing((wasEditing) => {
+            const next = !wasEditing;
+            if (next) {
+              setToastText(
+                "Edit mode on — use Add another offer under your products",
+              );
+              window.setTimeout(() => setToastText(null), 3200);
+              window.setTimeout(() => {
+                document
+                  .getElementById("offers-section")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }
+            return next;
+          });
+        }}
         regenerating={Boolean(regenerating)}
         onRegenerateAll={() => regenerate("all")}
         onRegenerateBio={() => regenerate("bio")}
@@ -783,16 +974,31 @@ export default function StorefrontView({ initial }: StorefrontViewProps) {
 function ProductEditor({
   product,
   regenerating,
+  canRemoveOffer,
   onChange,
   onDeliverableChange,
+  onAddDeliverable,
+  onRemoveDeliverable,
+  onRemoveOffer,
   onRegenerate,
 }: {
   product: StorefrontProduct;
   regenerating: boolean;
+  canRemoveOffer: boolean;
   onChange: (patch: Partial<StorefrontProduct>) => void;
   onDeliverableChange: (index: number, value: string) => void;
+  onAddDeliverable: (value?: string) => void;
+  onRemoveDeliverable: (index: number) => void;
+  onRemoveOffer: () => void;
   onRegenerate: () => void;
 }) {
+  const canAddMore = product.deliverables.length < MAX_DELIVERABLES;
+  const canRemove = product.deliverables.length > MIN_DELIVERABLES;
+  const suggestions = useMemo(
+    () => deliverableSuggestionsFor(product),
+    [product],
+  );
+
   return (
     <div className="space-y-3">
       <input
@@ -800,6 +1006,70 @@ function ProductEditor({
         value={product.title}
         onChange={(e) => onChange({ title: e.target.value })}
       />
+
+      <div className="space-y-2 rounded-2xl border-2 border-pine/25 bg-sage-soft/40 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pine">
+            <Plus className="h-3.5 w-3.5" />
+            What’s included · Add more
+          </p>
+          <p className="text-[11px] text-ink-muted">
+            {product.deliverables.length}/{MAX_DELIVERABLES}
+          </p>
+        </div>
+        {product.deliverables.map((item, index) => (
+          <div key={`${product.id}-d-${index}`} className="flex items-center gap-2">
+            <input
+              className="sp-field__control sp-field__control--plain"
+              value={item}
+              onChange={(e) => onDeliverableChange(index, e.target.value)}
+              placeholder="What the buyer receives"
+            />
+            {canRemove ? (
+              <button
+                type="button"
+                aria-label="Remove included item"
+                onClick={() => onRemoveDeliverable(index)}
+                className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-line bg-surface text-ink-muted transition-colors hover:border-pine/30 hover:text-pine"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </div>
+        ))}
+
+        {canAddMore ? (
+          <div className="space-y-2 border-t border-pine/15 pt-2">
+            <p className="text-[11px] leading-relaxed text-ink-secondary">
+              Tap a ready idea — no blank-page thinking. You can edit wording after.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => onAddDeliverable(suggestion)}
+                  className="cursor-pointer rounded-full border border-pine/30 bg-surface px-2.5 py-1.5 text-left text-[11px] font-semibold text-pine-ink shadow-xs transition-colors hover:border-pine hover:bg-sage-soft"
+                >
+                  + {suggestion}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => onAddDeliverable("")}
+                className="cursor-pointer rounded-full border border-dashed border-pine/40 bg-transparent px-2.5 py-1.5 text-[11px] font-semibold text-pine transition-colors hover:bg-surface"
+              >
+                + Write my own
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-[11px] text-ink-muted">
+            That’s the max for one offer — keep it scannable for buyers.
+          </p>
+        )}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <select
           className="sp-field__control"
@@ -812,7 +1082,7 @@ function ProductEditor({
         >
           {PRODUCT_FORMATS.map((format) => (
             <option key={format} value={format}>
-              {format}
+              {PRODUCT_FORMAT_META[format].label}
             </option>
           ))}
         </select>
@@ -840,14 +1110,7 @@ function ProductEditor({
         value={product.outcome}
         onChange={(e) => onChange({ outcome: e.target.value })}
       />
-      {product.deliverables.map((item, index) => (
-        <input
-          key={`${product.id}-d-${index}`}
-          className="sp-field__control sp-field__control--plain"
-          value={item}
-          onChange={(e) => onDeliverableChange(index, e.target.value)}
-        />
-      ))}
+
       <input
         type="number"
         className="sp-field__control sp-field__control--plain"
@@ -867,14 +1130,25 @@ function ProductEditor({
         />
         Mark as recommended offer
       </label>
-      <button
-        type="button"
-        disabled={regenerating}
-        onClick={onRegenerate}
-        className="text-xs font-semibold text-pine disabled:opacity-60"
-      >
-        {regenerating ? "Regenerating…" : "Regenerate this offer"}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={regenerating}
+          onClick={onRegenerate}
+          className="text-xs font-semibold text-pine disabled:opacity-60"
+        >
+          {regenerating ? "Regenerating…" : "Regenerate this offer"}
+        </button>
+        {canRemoveOffer ? (
+          <button
+            type="button"
+            onClick={onRemoveOffer}
+            className="text-xs font-semibold text-ink-muted underline-offset-2 hover:text-pine hover:underline"
+          >
+            Remove this offer
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

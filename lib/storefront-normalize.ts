@@ -1,8 +1,8 @@
 import {
   COVER_MOTIFS,
-  PRODUCT_FORMATS,
   StorefrontProductSchema,
   StorefrontSchema,
+  normalizeProductFormat,
   type Storefront,
   type StorefrontProduct,
 } from "@/lib/schemas";
@@ -21,11 +21,7 @@ function normalizeProduct(
   raw: Record<string, unknown>,
   index: number,
 ): StorefrontProduct {
-  const format =
-    typeof raw.format === "string" &&
-    (PRODUCT_FORMATS as readonly string[]).includes(raw.format)
-      ? raw.format
-      : "ebook";
+  const format = normalizeProductFormat(raw.format);
 
   const coverMotif =
     typeof raw.coverMotif === "string" &&
@@ -84,7 +80,7 @@ export function normalizeStorefront(raw: unknown): Storefront | null {
 
   try {
     const products = productsRaw
-      .slice(0, 4)
+      .slice(0, 6)
       .map((item, index) =>
         normalizeProduct(
           item && typeof item === "object"

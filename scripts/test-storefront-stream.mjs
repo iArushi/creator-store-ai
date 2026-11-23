@@ -23,7 +23,7 @@ const validBody = {
   goals: ["Earn from existing expertise"],
   selectedOpportunity: {
     productName: "30-Day Indian Meal Planner",
-    format: "template pack",
+    format: "digital files",
     whoWouldBuy: "Parents planning weekday meals on a budget",
     problemSolved: "Deciding what to cook every day feels exhausting",
     customerOutcome: "A clear weekly meal plan they can reuse",

@@ -31,8 +31,9 @@ You receive:
 3) Creator goals/constraints
 
 Generate highly specific product opportunities grounded in demonstrated expertise.
-Do NOT default to ebook + course + consultation for every creator.
-Choose formats the creator can actually deliver from evidence.
+Do NOT default to the same three formats for every creator.
+Choose SuperProfile product types the creator can actually deliver from evidence:
+digital files, 1-on-1 session, membership, event / webinar, locked content, or course.
 
 Return ONLY JSON:
 { "opportunities": [ ... ] }

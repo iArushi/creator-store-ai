@@ -108,7 +108,7 @@ export default function CreatorDock({
                   : "border-line bg-paper/70 text-pine-ink"
               }`}
             >
-              {editing ? "Done editing" : "Edit fields"}
+              {editing ? "Done editing" : "Edit offers"}
             </button>
             <button
               type="button"
@@ -193,7 +193,7 @@ export default function CreatorDock({
           }`}
         >
           <Pencil className="h-3.5 w-3.5" />
-          <span>{editing ? "Done" : "Edit"}</span>
+          <span>{editing ? "Done" : "Edit offers"}</span>
         </button>
 
         <button

@@ -31,19 +31,17 @@ export const MEDIA = {
       "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80",
   },
   formats: {
-    ebook:
-      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80",
-    "cohort course":
-      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80",
-    "1:1 call":
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=80",
-    community:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1000&q=80",
-    "template pack":
+    "digital files":
       "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=1000&q=80",
-    workshop:
+    "1-on-1 session":
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=80",
+    membership:
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1000&q=80",
+    "event / webinar":
       "https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&w=1000&q=80",
-    "mini-course":
+    "locked content":
+      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80",
+    course:
       "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1000&q=80",
   },
 } as const;
@@ -73,5 +71,20 @@ export function formatImage(format?: string): string {
   if (format && format in MEDIA.formats) {
     return MEDIA.formats[format as keyof typeof MEDIA.formats];
   }
-  return MEDIA.formats.ebook;
+  // Legacy / free-text formats from older storefronts
+  const key = (format || "").toLowerCase();
+  if (key.includes("1:1") || key.includes("call") || key.includes("session")) {
+    return MEDIA.formats["1-on-1 session"];
+  }
+  if (key.includes("community") || key.includes("membership")) {
+    return MEDIA.formats.membership;
+  }
+  if (key.includes("workshop") || key.includes("webinar") || key.includes("event")) {
+    return MEDIA.formats["event / webinar"];
+  }
+  if (key.includes("course") || key.includes("cohort") || key.includes("mini")) {
+    return MEDIA.formats.course;
+  }
+  if (key.includes("locked")) return MEDIA.formats["locked content"];
+  return MEDIA.formats["digital files"];
 }

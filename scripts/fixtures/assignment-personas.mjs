@@ -10,13 +10,12 @@
  */
 
 export const PRODUCT_FORMATS = [
-  "ebook",
-  "cohort course",
-  "1:1 call",
-  "community",
-  "template pack",
-  "workshop",
-  "mini-course",
+  "digital files",
+  "1-on-1 session",
+  "membership",
+  "event / webinar",
+  "locked content",
+  "course",
 ];
 
 /** Primary persona: Indian micro-creator (5K–100K), mobile-first, INR price-sensitive. */

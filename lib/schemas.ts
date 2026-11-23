@@ -229,17 +229,113 @@ export const CreatorGoalsSchema = z.object({
 
 export type CreatorGoals = z.infer<typeof CreatorGoalsSchema>;
 
+/** SuperProfile-aligned product types creators can sell. */
 export const PRODUCT_FORMATS = [
-  "ebook",
-  "cohort course",
-  "1:1 call",
-  "community",
-  "template pack",
-  "workshop",
-  "mini-course",
+  "digital files",
+  "1-on-1 session",
+  "membership",
+  "event / webinar",
+  "locked content",
+  "course",
 ] as const;
 
 export type ProductFormat = (typeof PRODUCT_FORMATS)[number];
+
+/** Labels + blurbs shown in Add offer (mirrors SuperProfile “Create a product”). */
+export const PRODUCT_FORMAT_META: Record<
+  ProductFormat,
+  { label: string; blurb: string }
+> = {
+  "digital files": {
+    label: "Sell Digital Files",
+    blurb: "Sell ebooks, PDFs, templates, images, videos, and more.",
+  },
+  "1-on-1 session": {
+    label: "Offer 1-on-1 Session",
+    blurb: "Set up a 1-on-1 session for visitors who need personal help.",
+  },
+  membership: {
+    label: "Recurring Membership",
+    blurb: "Start a membership on Telegram, Discord, or WhatsApp.",
+  },
+  "event / webinar": {
+    label: "Host Event or Webinar",
+    blurb: "Sell live event tickets, workshops, or classes.",
+  },
+  "locked content": {
+    label: "Locked Content",
+    blurb: "Lock a file or drop for a price — buyers unlock to access.",
+  },
+  course: {
+    label: "Sell a Course",
+    blurb: "Sell access to a video collection or online classes.",
+  },
+};
+
+/** Map legacy / free-text formats onto SuperProfile product types. */
+export function normalizeProductFormat(value: unknown): ProductFormat {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+  const exact = PRODUCT_FORMATS.find((format) => format === raw);
+  if (exact) return exact;
+
+  if (
+    raw.includes("locked") ||
+    raw.includes("paywall") ||
+    raw.includes("unlock")
+  ) {
+    return "locked content";
+  }
+  if (
+    raw.includes("membership") ||
+    raw.includes("community") ||
+    raw.includes("discord") ||
+    raw.includes("telegram") ||
+    raw.includes("whatsapp")
+  ) {
+    return "membership";
+  }
+  if (
+    raw.includes("event") ||
+    raw.includes("webinar") ||
+    raw.includes("workshop") ||
+    raw.includes("live class")
+  ) {
+    return "event / webinar";
+  }
+  if (
+    raw.includes("1-on-1") ||
+    raw.includes("1:1") ||
+    raw.includes("one-on-one") ||
+    raw.includes("one on one") ||
+    raw.includes("consult") ||
+    (raw.includes("call") && !raw.includes("callback"))
+  ) {
+    return "1-on-1 session";
+  }
+  if (
+    raw.includes("course") ||
+    raw.includes("cohort") ||
+    raw.includes("class") ||
+    raw.includes("mini")
+  ) {
+    return "course";
+  }
+  if (
+    raw.includes("digital") ||
+    raw.includes("ebook") ||
+    raw.includes("pdf") ||
+    raw.includes("template") ||
+    raw.includes("guide") ||
+    raw.includes("checklist") ||
+    raw.includes("sheet") ||
+    raw.includes("file")
+  ) {
+    return "digital files";
+  }
+  return "digital files";
+}
 
 export const CREATION_EFFORT_LEVELS = ["low", "medium", "high"] as const;
 export type CreationEffort = (typeof CREATION_EFFORT_LEVELS)[number];
@@ -280,7 +376,10 @@ export type OpportunityScores = z.infer<typeof OpportunityScoresSchema>;
 export const MonetisationOpportunitySchema = z.object({
   id: z.string().trim().min(1).optional(),
   productName: z.string().trim().min(1),
-  format: z.enum(PRODUCT_FORMATS).default("ebook"),
+  format: z.preprocess(
+    normalizeProductFormat,
+    z.enum(PRODUCT_FORMATS),
+  ).default("digital files"),
   /** Target audience (kept as whoWouldBuy for storefront compatibility) */
   whoWouldBuy: z.string().trim().min(1),
   problemSolved: z.string().trim().min(1),
@@ -366,7 +465,7 @@ export type GenerateOpportunitiesRequest = z.infer<
 /** Strict shape expected from the LLM (before server-side score finalisation). */
 export const MonetisationOpportunityAiSchema = z.object({
   productName: z.string().trim().min(1),
-  format: z.enum(PRODUCT_FORMATS),
+  format: z.preprocess(normalizeProductFormat, z.enum(PRODUCT_FORMATS)),
   whoWouldBuy: z.string().trim().min(1),
   problemSolved: z.string().trim().min(1),
   customerOutcome: z.string().trim().min(1),
@@ -436,7 +535,7 @@ export type CoverMotif = (typeof COVER_MOTIFS)[number];
 /** AI product fields before an id is assigned */
 export const StorefrontProductFieldsSchema = z.object({
   title: z.string().trim().min(1),
-  format: z.enum(PRODUCT_FORMATS),
+  format: z.preprocess(normalizeProductFormat, z.enum(PRODUCT_FORMATS)),
   description: z
     .string()
     .trim()
@@ -479,7 +578,7 @@ export const StorefrontSchema = z.object({
   expertiseTags: z.array(z.string().trim().min(1)).max(8).default([]),
   /** Only a real uploaded/retrieved photo URL — never invent images */
   profileImageUrl: z.string().url().optional(),
-  products: z.array(StorefrontProductSchema).min(2).max(4),
+  products: z.array(StorefrontProductSchema).min(2).max(6),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

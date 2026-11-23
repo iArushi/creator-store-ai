@@ -16,6 +16,7 @@ import StatusBanner from "@/components/ui/StatusBanner";
 import {
   CREATION_EFFORT_LEVELS,
   PRODUCT_FORMATS,
+  PRODUCT_FORMAT_META,
   type IntelligenceBrief,
   type MonetisationOpportunity,
   type ResearchMeta,
@@ -292,7 +293,7 @@ export default function ScreenOpportunities({
                     >
                       {PRODUCT_FORMATS.map((format) => (
                         <option key={format} value={format}>
-                          {format}
+                          {PRODUCT_FORMAT_META[format].label}
                         </option>
                       ))}
                     </select>

@@ -11,7 +11,7 @@ Return ONLY valid JSON matching this shape:
   "products": [
     {
       "title": string,
-      "format": "ebook" | "cohort course" | "1:1 call" | "community" | "template pack" | "workshop" | "mini-course",
+      "format": "digital files" | "1-on-1 session" | "membership" | "event / webinar" | "locked content" | "course",
       "description": string,
       "targetAudience": string,
       "problemSolved": string,
@@ -30,13 +30,14 @@ Content rules:
 - Stay faithful to the creator profile and selected opportunity provided in the user message.
 - Generate 2 to 4 products. Exactly one must have featured=true (the lead offer from the selected opportunity).
 - Titles must be specific and non-generic. Avoid "Ultimate Guide", "Complete Mastery", or near-duplicate wording across products.
-- Each product needs a distinct format and a clearly different buyer job.
+- Each product needs a distinct SuperProfile format and a clearly different buyer job.
+- Prefer formats from: digital files, 1-on-1 session, membership, event / webinar, locked content, course.
 - description: 1-2 concise sentences.
 - targetAudience: concrete (role, stage, constraint) — not "everyone".
 - problemSolved: the friction the buyer feels today.
 - outcome: what they can do after buying (skills/clarity/process). Never promise financial returns, guaranteed income, or investment performance.
 - deliverables: 2-5 tangible items the buyer receives (files, sessions, templates, worksheets).
-- priceInr: plausible INR for Indian audiences and that format (ebook/template often ₹299–₹1,999; mini-course/workshop ₹999–₹4,999; cohort/community/1:1 higher when justified). Never claim prices are market-validated.
+- priceInr: plausible INR for Indian audiences and that format (digital files / locked content often ₹199–₹999; course ₹999–₹4,999; event / webinar ₹999–₹4,999; membership ₹299–₹999/mo framing as one-time listed price; 1-on-1 session higher when justified). Never claim prices are market-validated.
 - priceRationale: brief and honest about format + depth + access — not "competitors charge X".
 - whyFitsCreator: tie to their stated expertise/audience — no invented credentials.
 - intro: short first-person creator introduction (2-3 sentences) for an about section.
@@ -65,6 +66,7 @@ Regenerate the full storefront while keeping the same creator niche and overall 
 export const REGENERATE_PRODUCTS_PROMPT = `Regenerate 2-4 product offers for an Indian creator storefront.
 Return ONLY JSON: { "products": [ ...product objects... ] }
 Each product must include: title, format, description, targetAudience, problemSolved, outcome, deliverables (2-5), priceInr, priceRationale, whyFitsCreator, featured, coverMotif.
+format must be one of: digital files | 1-on-1 session | membership | event / webinar | locked content | course.
 Exactly one featured=true. Titles must be specific and non-repetitive.
 Pricing: plausible INR for format; never claim market validation.
 Finance niches: educational framing only — no personalised investment advice or return promises.
@@ -73,6 +75,7 @@ ${ANTI_HALLUCINATION_RULES}`;
 
 export const REGENERATE_ONE_PRODUCT_PROMPT = `Regenerate a single storefront product for an Indian creator.
 Return ONLY JSON for one product with: title, format, description, targetAudience, problemSolved, outcome, deliverables (2-5), priceInr, priceRationale, whyFitsCreator, featured, coverMotif.
+format must be one of: digital files | 1-on-1 session | membership | event / webinar | locked content | course.
 Keep featured true only if the existing product was featured.
 Specific title, tangible deliverables, plausible INR. No return guarantees. Finance content stays educational, not advice.
 
