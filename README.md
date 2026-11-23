@@ -4,6 +4,8 @@
 
 Helps creators who share useful content — but don’t know what to sell — turn that into a simple paid offer and a shareable store page.
 
+**Live MVP:** [https://creator-store-ai.vercel.app](https://creator-store-ai.vercel.app)
+
 More on decisions and metrics: [docs/PRODUCT_DECISION.md](./docs/PRODUCT_DECISION.md)
 
 ---
