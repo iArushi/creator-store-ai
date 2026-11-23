@@ -97,7 +97,6 @@ function scoreScenario(scenario, ctx) {
   const notes = [];
   const intelBlob = blob({ profile, intelligence });
   const oppBlob = blob(opportunities);
-  const allBlob = `${intelBlob}\n${oppBlob}`;
 
   // --- Expertise discovery ---
   const discovered = includesAny(intelBlob, scenario.mustDiscover || []);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import FallbackState from "@/components/ui/FallbackState";
 import { toUserError } from "@/lib/user-errors";
 
@@ -11,6 +12,7 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const router = useRouter();
   const friendly = toUserError(error, "generic");
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function AppError({
         onPrimary={reset}
         secondaryLabel="Start over"
         onSecondary={() => {
-          window.location.href = "/";
+          router.push("/");
         }}
       />
     </main>

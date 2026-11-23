@@ -1,5 +1,6 @@
 "use client";
 
+import { createElement } from "react";
 import {
   BookOpen,
   Calendar,
@@ -7,6 +8,7 @@ import {
   Layers,
   Sparkles,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import type { ProductFormat, StorefrontProduct } from "@/lib/schemas";
 
@@ -41,14 +43,35 @@ function firstWords(text: string, count = 3): string {
     .join(" ");
 }
 
-function formatIcon(format: ProductFormat | string) {
+function formatIcon(format: ProductFormat | string): LucideIcon {
   const key = format.toLowerCase();
-  if (key.includes("1:1") || key.includes("call")) return Calendar;
-  if (key.includes("workshop") || key.includes("cohort") || key.includes("community")) {
+  if (
+    key.includes("1-on-1") ||
+    key.includes("1:1") ||
+    key.includes("session") ||
+    key.includes("call")
+  ) {
+    return Calendar;
+  }
+  if (
+    key.includes("event") ||
+    key.includes("webinar") ||
+    key.includes("workshop") ||
+    key.includes("cohort") ||
+    key.includes("membership") ||
+    key.includes("community")
+  ) {
     return Users;
   }
   if (key.includes("course")) return BookOpen;
-  if (key.includes("template") || key.includes("ebook")) return CheckSquare;
+  if (
+    key.includes("digital") ||
+    key.includes("locked") ||
+    key.includes("template") ||
+    key.includes("ebook")
+  ) {
+    return CheckSquare;
+  }
   return Layers;
 }
 
@@ -139,16 +162,24 @@ export function ProductArtifactPreview({
 }: {
   product: ProductPreviewInput;
 }) {
-  const Icon = formatIcon(product.format);
+  const icon = formatIcon(product.format);
   const steps = buildSteps(product);
   const chips = buildMetricChips(product);
   const heading = previewTitle(product.format, product.niche);
   const key = product.format.toLowerCase();
-  const isSession = key.includes("1:1") || key.includes("call");
+  const isSession =
+    key.includes("1-on-1") ||
+    key.includes("1:1") ||
+    key.includes("session") ||
+    key.includes("call");
   const isLive =
+    key.includes("event") ||
+    key.includes("webinar") ||
     key.includes("workshop") ||
     key.includes("cohort") ||
+    key.includes("membership") ||
     key.includes("community");
+  const iconEl = createElement(icon, { className: "h-3.5 w-3.5" });
 
   if (isSession || isLive) {
     return (
@@ -165,7 +196,7 @@ export function ProductArtifactPreview({
               isSession ? "text-ochre-ink" : "text-pine"
             }`}
           >
-            <Icon className="h-3.5 w-3.5" />
+            {iconEl}
             {heading}
           </span>
           <span
@@ -210,7 +241,7 @@ export function ProductArtifactPreview({
       <div className="rounded-xl border border-sage-mid/70 bg-sage-soft/65 p-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-pine">
-            <Icon className="h-3.5 w-3.5" />
+            {iconEl}
             {heading}
           </span>
           <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] font-medium text-ink-muted">
@@ -254,7 +285,7 @@ export function ProductArtifactPreview({
     <div className="rounded-xl border border-line bg-paper p-3">
       <div className="mb-2 flex items-center justify-between gap-2 text-[11px]">
         <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider text-pine">
-          <Icon className="h-3.5 w-3.5" />
+          {iconEl}
           {heading}
         </span>
         <span className="inline-flex items-center gap-1 text-ink-muted">

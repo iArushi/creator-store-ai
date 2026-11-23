@@ -71,8 +71,22 @@ export default function OnboardingFlow() {
   const [language, setLanguage] = useState<LanguageOption>("English");
   const [statusLoading, setStatusLoading] = useState(true);
   const [connectLoading, setConnectLoading] = useState(false);
-  const [handleError, setHandleError] = useState<string | undefined>();
-  const [profileNotice, setProfileNotice] = useState<string | undefined>();
+  const [handleError, setHandleError] = useState<string | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("ig") !== "error") return undefined;
+    const reason = params.get("reason") || "";
+    return (
+      IG_ERROR_MESSAGES[reason] ||
+      "Instagram connection failed. Try again or continue manually."
+    );
+  });
+  const [profileNotice, setProfileNotice] = useState<string | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return new URLSearchParams(window.location.search).get("ig") === "connected"
+      ? "Instagram connected. Review your profile, then analyse."
+      : undefined;
+  });
   const [guidedBanner, setGuidedBanner] = useState<string | undefined>();
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [generatingOpportunities, setGeneratingOpportunities] = useState(false);
@@ -143,27 +157,16 @@ export default function OnboardingFlow() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const ig = params.get("ig");
-    const reason = params.get("reason");
-
-    if (ig === "connected") {
-      setProfileNotice("Instagram connected. Review your profile, then analyse.");
-      setHandleError(undefined);
-    } else if (ig === "error") {
-      setHandleError(
-        IG_ERROR_MESSAGES[reason || ""] ||
-          "Instagram connection failed. Try again or continue manually.",
-      );
-    }
-
-    if (ig) {
+    if (params.get("ig")) {
       const url = new URL(window.location.href);
       url.searchParams.delete("ig");
       url.searchParams.delete("reason");
       window.history.replaceState({}, "", url.pathname);
     }
-
-    void refreshInstagramStatus();
+    const timer = window.setTimeout(() => {
+      void refreshInstagramStatus();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   function updateGuided<K extends keyof GuidedDraft>(

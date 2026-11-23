@@ -2,11 +2,12 @@
 
 **SuperProfile take-home (Product Manager)**
 
-Helps creators who share useful content — but don’t know what to sell — turn that into a simple paid offer and a shareable store page.
+Helps creators who share useful content — but don’t know what to sell — turn that into a monetisation-ready offer and shareable storefront.
 
 **Live MVP:** [https://creator-store-ai.vercel.app](https://creator-store-ai.vercel.app)
 
-More on decisions and metrics: [docs/PRODUCT_DECISION.md](./docs/PRODUCT_DECISION.md)
+**Product decision document (final PDF):** [docs/PRODUCT_DECISION.pdf](./docs/PRODUCT_DECISION.pdf)  
+Markdown source: [docs/PRODUCT_DECISION.md](./docs/PRODUCT_DECISION.md)
 
 ---
 

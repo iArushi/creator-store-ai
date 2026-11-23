@@ -106,7 +106,6 @@ export function validateOpportunitySet(input: {
 
     for (const evidence of opportunity.evidence) {
       try {
-        // eslint-disable-next-line no-new
         new URL(evidence.sourceUrl);
       } catch {
         issues.push(
