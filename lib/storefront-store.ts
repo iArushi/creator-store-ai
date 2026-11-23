@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { get, put } from "@vercel/blob";
 import { StorefrontSchema, type Storefront } from "@/lib/schemas";
 import { normalizeStorefront } from "@/lib/storefront-normalize";
 
@@ -25,6 +26,17 @@ function filePathFor(slug: string) {
   return path.join(dataDir(), `${slug}.json`);
 }
 
+function blobPathFor(slug: string) {
+  return `storefronts/${slug}.json`;
+}
+
+function canUseBlob() {
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN ||
+      (process.env.VERCEL && process.env.BLOB_STORE_ID),
+  );
+}
+
 export function createSlug(seed?: string): string {
   const base = (seed || "creator")
     .toLowerCase()
@@ -35,9 +47,37 @@ export function createSlug(seed?: string): string {
   return `${base || "creator"}-${suffix}`;
 }
 
+async function saveToBlob(storefront: Storefront): Promise<void> {
+  if (!canUseBlob()) return;
+  await put(blobPathFor(storefront.slug), JSON.stringify(storefront), {
+    access: "private",
+    contentType: "application/json",
+    allowOverwrite: true,
+    addRandomSuffix: false,
+  });
+}
+
+async function loadFromBlob(slug: string): Promise<Storefront | null> {
+  if (!canUseBlob()) return null;
+  try {
+    const result = await get(blobPathFor(slug), { access: "private" });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const raw = await new Response(result.stream).text();
+    return normalizeStorefront(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
 export async function saveStorefront(storefront: Storefront): Promise<Storefront> {
   const parsed = StorefrontSchema.parse(storefront);
   getGlobalStore().storefronts.set(parsed.slug, parsed);
+
+  try {
+    await saveToBlob(parsed);
+  } catch {
+    // Fall through to local disk / memory for local-dev without Blob.
+  }
 
   try {
     await fs.mkdir(dataDir(), { recursive: true });
@@ -47,14 +87,19 @@ export async function saveStorefront(storefront: Storefront): Promise<Storefront
       "utf8",
     );
   } catch {
-    // Filesystem may be read-only on some hosts; memory still works for the session.
+    // Filesystem may be read-only on some hosts; memory/blob still work.
   }
 
   return parsed;
 }
 
 export async function getStorefront(slug: string): Promise<Storefront | null> {
-  // Prefer disk when available so refreshed sample / edited JSON is visible.
+  const fromBlob = await loadFromBlob(slug);
+  if (fromBlob) {
+    getGlobalStore().storefronts.set(slug, fromBlob);
+    return fromBlob;
+  }
+
   try {
     const raw = await fs.readFile(filePathFor(slug), "utf8");
     const normalized = normalizeStorefront(JSON.parse(raw));
